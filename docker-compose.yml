@@ -9,7 +9,7 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=adminpassword
-      - MONGO_INITDB_DATABASE=fintech
+      - MONGO_INITDB_DATABASE=healthcheck
     networks:
       - mongo-network
 

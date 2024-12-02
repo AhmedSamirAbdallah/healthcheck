@@ -1,12 +1,14 @@
-package cmd
+package main
 
 import (
+	"context"
 	"fmt"
 	"healthcheck/config"
 	"healthcheck/db"
 	"healthcheck/route"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -15,10 +17,16 @@ func Init() (*mux.Router, error) {
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Printf("Error loading environment file: %v\n", err)
+		return nil, err
 	}
-	client, err := db.ConnectMongo(cfg.MongoURI)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	client, err := db.ConnectMongo(ctx, cfg.MongoURI)
 	if err != nil {
-		log.Fatal("Failed to connect to MongoDB:", err)
+		log.Printf("Failed to connect to MongoDB: %v", err)
+		return nil, err
 	}
 	r := mux.NewRouter()
 	route.RegisterHealthCheckRoutes(r, client, cfg)

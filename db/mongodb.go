@@ -8,18 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-package db
-
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-)
-
-func ConnectMongo(mongoURI string) (*mongo.Client, error) {
+func ConnectMongo(ctx context.Context, mongoURI string) (*mongo.Client, error) {
 	clientOptions := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
