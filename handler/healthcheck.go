@@ -27,11 +27,11 @@ func HealthCheckHandler(client *mongo.Client, config *config.Config) http.Handle
 			"read":       db.CheckReadOnDB(client, config.DatabaseName),
 			"write":      db.CheckWriteOnDB(client, config.DatabaseName),
 		}
-
+		kafka.InitKafka(config.KafkaBroker, config.KafkaGroupID)
 		kafkaStatus := map[string]interface{}{
-			"connection": kafka.CheckKafka(config.KafkaBroker),
-			"produce":    kafka.CheckProduce(config.KafkaBroker, config.KafkaTopic),
-			"consume":    kafka.CheckConsume(config.KafkaBroker, config.KafkaTopic, config.KafkaGroupID),
+			"connection": kafka.CheckKafka(),
+			"produce":    kafka.CheckProduce(config.KafkaTopic),
+			"consume":    kafka.CheckConsume(config.KafkaTopic),
 		}
 
 		response := HealthCheckResponse{

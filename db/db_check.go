@@ -29,6 +29,10 @@ func CheckReadOnDB(client *mongo.Client, databaseName string) bool {
 	var result HealthCheck
 	err := collection.FindOne(context.Background(), map[string]interface{}{}).Decode(&result)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Println("Healthcheck collection is empty, but the database is accessible.")
+			return true
+		}
 		log.Printf("Error reading from healthcheck collection: %v", err)
 		return false
 	}

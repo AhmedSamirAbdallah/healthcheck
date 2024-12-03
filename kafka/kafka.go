@@ -4,9 +4,47 @@ import (
 	"context"
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/IBM/sarama"
 )
+
+var (
+	sharedProducer   sarama.SyncProducer
+	sharedConsumer   sarama.ConsumerGroup
+	sharedKafkaAdmin sarama.ClusterAdmin
+	initOnce         sync.Once
+)
+
+func InitKafka(brokers string, groupID string) error {
+	var err error
+
+	initOnce.Do(func() {
+		sharedProducer, err = CreateProducer(brokers)
+		if err != nil {
+			log.Printf("Failed to initialize Kafka producer: %v", err)
+			return
+		}
+
+		sharedConsumer, err = CreateConsumer(brokers, groupID)
+		if err != nil {
+			log.Printf("Failed to initialize Kafka consumer: %v", err)
+			return
+		}
+
+		brokerList := strings.Split(brokers, ",")
+		config := sarama.NewConfig()
+		config.Version = sarama.V2_0_0_0
+		config.ClientID = "health-check-client"
+
+		sharedKafkaAdmin, err = sarama.NewClusterAdmin(brokerList, config)
+		if err != nil {
+			log.Printf("Failed to initialize Kafka admin client: %v", err)
+			return
+		}
+	})
+	return err
+}
 
 func CreateProducer(brokers string) (sarama.SyncProducer, error) {
 	brokerList := strings.Split(brokers, ",")
@@ -78,14 +116,13 @@ func (c *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim saram
 	return nil
 }
 
-func CheckProduce(brokers string, topic string) bool {
-	producer, err := CreateProducer(brokers)
-	if err != nil {
-		log.Printf("Error creating Kafka producer: %v", err)
+func CheckProduce(topic string) bool {
+	if sharedProducer == nil {
+		log.Println("Kafka producer is not initialized")
 		return false
 	}
-	defer producer.Close()
-	err = SendMessage(producer, topic, "produce within the health check")
+
+	err := SendMessage(sharedProducer, topic, "produce within the health check")
 	if err != nil {
 		log.Printf("Error sending message to Kafka topic %s: %v", topic, err)
 		return false
@@ -93,25 +130,23 @@ func CheckProduce(brokers string, topic string) bool {
 	return true
 }
 
-func CheckConsume(brokers string, topic string, groupID string) bool {
-	consumerGroup, err := CreateConsumer(brokers, groupID)
-	if err != nil {
-		log.Printf("Error creating Kafka consumer group: %v", err)
+func CheckConsume(topic string) bool {
+	if sharedConsumer == nil {
+		log.Println("Kafka consumer is not initialized")
 		return false
 	}
-	defer consumerGroup.Close()
 
 	consumer := &Consumer{
 		ready:    make(chan bool),
 		received: make(chan bool),
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, _ := context.WithCancel(context.Background())
+	// defer cancel()
 
 	go func() {
 		for {
-			err := consumerGroup.Consume(ctx, []string{topic}, consumer)
+			err := sharedConsumer.Consume(ctx, []string{topic}, consumer)
 			if err != nil {
 				log.Printf("Error during message consumption: %v", err)
 				return
@@ -119,35 +154,24 @@ func CheckConsume(brokers string, topic string, groupID string) bool {
 		}
 	}()
 
-	log.Println("Kafka consumer is ready for health check")
-
 	select {
 	case <-consumer.received:
 		log.Println("Consumer received at least one message")
 		return true
 	case <-ctx.Done():
-		log.Println("Context done without consuming messages")
+		log.Println("Context timeout without consuming messages")
 		return false
 	}
 }
 
-func CheckKafka(brokers string) bool {
-	brokerList := strings.Split(brokers, ",")
-	log.Printf("brokers : %v", brokerList)
-	config := sarama.NewConfig()
-	config.Version = sarama.V2_0_0_0
-	config.ClientID = "health-check-client"
-
-	admin, err := sarama.NewClusterAdmin(brokerList, config)
-	if err != nil {
-		log.Printf("failed to create Kafka admin client: %v", err)
+func CheckKafka() bool {
+	if sharedKafkaAdmin == nil {
+		log.Println("Kafka admin client is not initialized")
 		return false
 	}
-	defer admin.Close()
-
-	brokersList, _, err := admin.DescribeCluster()
+	brokersList, _, err := sharedKafkaAdmin.DescribeCluster()
 	if err != nil {
-		log.Printf("failed to describe cluster: %v", err)
+		log.Printf("Failed to describe Kafka cluster: %v", err)
 		return false
 	}
 	log.Printf("Kafka health check successful: found %d broker(s)\n", len(brokersList))
