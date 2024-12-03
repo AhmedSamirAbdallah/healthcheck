@@ -13,6 +13,7 @@ type Config struct {
 	DatabaseName string
 	KafkaBroker  string
 	KafkaTopic   string
+	KafkaGroupID string
 }
 
 func LoadConfig() (*Config, error) {
@@ -26,5 +27,6 @@ func LoadConfig() (*Config, error) {
 		DatabaseName: os.Getenv("DATABASE_NAME"),
 		KafkaBroker:  os.Getenv("KAFKA_BROKER"),
 		KafkaTopic:   os.Getenv("KAFKA_TOPIC"),
+		KafkaGroupID: os.Getenv("KAFKA_GROUP_ID"),
 	}, nil
 }

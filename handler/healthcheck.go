@@ -31,7 +31,7 @@ func HealthCheckHandler(client *mongo.Client, config *config.Config) http.Handle
 		kafkaStatus := map[string]interface{}{
 			"connection": kafka.CheckKafka(config.KafkaBroker),
 			"produce":    kafka.CheckProduce(config.KafkaBroker, config.KafkaTopic),
-			// "consume":    CheckConsume(config.KafkaBroker, config.KafkaTopic),
+			"consume":    kafka.CheckConsume(config.KafkaBroker, config.KafkaTopic, config.KafkaGroupID),
 		}
 
 		response := HealthCheckResponse{

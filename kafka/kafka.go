@@ -38,6 +38,41 @@ func SendMessage(producer sarama.SyncProducer, topic, message string) error {
 	return nil
 }
 
-// func ConsumeMessage() error {
+func CreateConsumer(brokers string, groupID string) (sarama.ConsumerGroup, error) {
+	brokerList := strings.Split(brokers, ",")
 
-// }
+	config := sarama.NewConfig()
+	config.Version = sarama.V2_1_0_0
+	config.Consumer.Offsets.Initial = sarama.OffsetNewest
+
+	consumerGroup, err := sarama.NewConsumerGroup(brokerList, groupID, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return consumerGroup, nil
+}
+
+type Consumer struct {
+	ready    chan bool
+	received chan bool
+}
+
+func (c *Consumer) Setup(sarama.ConsumerGroupSession) error {
+	close(c.ready)
+	return nil
+}
+
+func (c *Consumer) Cleanup(sarama.ConsumerGroupSession) error {
+	return nil
+}
+
+func (c *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	for message := range claim.Messages() {
+		log.Printf("Message received: topic=%s partition=%d offset=%d key=%s value=%s",
+			message.Topic, message.Partition, message.Offset, string(message.Key), string(message.Value))
+		session.MarkMessage(message, "")
+		c.received <- true
+	}
+	return nil
+}
