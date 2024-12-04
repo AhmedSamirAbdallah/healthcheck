@@ -19,6 +19,7 @@ type Config struct {
 	RedisPort     string
 	RedisPassword string
 	RedisDB       int
+	TemporalUrl   string
 }
 
 func LoadConfig() (*Config, error) {
@@ -43,5 +44,6 @@ func LoadConfig() (*Config, error) {
 		RedisPort:     os.Getenv("REDIS_PORT"),
 		RedisPassword: os.Getenv("REDIS_PASSWORD"),
 		RedisDB:       redisDB,
+		TemporalUrl:   os.Getenv("TEMPORAL_URL"),
 	}, nil
 }

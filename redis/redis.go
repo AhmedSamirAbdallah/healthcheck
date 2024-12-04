@@ -47,7 +47,7 @@ func CheckWriteOnRedis(key string, value string) bool {
 		log.Printf("Error writing to Redis: %v", err)
 		return false
 	}
-	log.Printf("Successfully wrote to Redis: %s = %s", key, value)
+	log.Printf("RedisWrite : Successfully wrote to Redis: %s = %s", key, value)
 	return true
 }
 
@@ -57,6 +57,6 @@ func CheckReadOnRedis(key string) bool {
 		log.Printf("Error reading from Redis: %v", err)
 		return false
 	}
-	log.Printf("Read value from Redis: %s = %s", key, val)
+	log.Printf("RedisRead : Read value from Redis: %s = %s", key, val)
 	return true
 }

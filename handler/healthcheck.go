@@ -6,6 +6,7 @@ import (
 	"healthcheck/db"
 	"healthcheck/kafka"
 	"healthcheck/redis"
+	"healthcheck/temporal"
 	"net/http"
 	"time"
 )
@@ -38,8 +39,11 @@ func HealthCheckHandler(cfg *config.Config) http.HandlerFunc {
 		redis.InitRedis(cfg.RedisHost+":"+cfg.RedisPort, cfg.RedisPassword, cfg.RedisDB)
 		redisStatus := map[string]interface{}{
 			"connection": redis.CheckRedisConnection(),
-			"write":      redis.CheckWriteOnRedis("ahmed samir", "happy"),
-			"read":       redis.CheckReadOnRedis("ahmed samir"),
+			"write":      redis.CheckWriteOnRedis("healthcheck", "healthy"),
+			"read":       redis.CheckReadOnRedis("healthcheck"),
+		}
+		temporalStatus := map[string]interface{}{
+			"connection": temporal.CheckTemporalConnection(cfg.TemporalUrl),
 		}
 
 		response := HealthCheckResponse{
@@ -49,6 +53,7 @@ func HealthCheckHandler(cfg *config.Config) http.HandlerFunc {
 				"database": dbStatus,
 				"kafka":    kafkaStatus,
 				"redis":    redisStatus,
+				"temporal": temporalStatus,
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
