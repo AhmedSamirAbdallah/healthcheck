@@ -40,6 +40,9 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=admin  # Set the password here
+    command: ["redis-server", "--requirepass", "admin"]  # Enforce password authentication
     networks:
       - redis-network
 
@@ -50,13 +53,13 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_PASSWORD=admin  # Pass the password here too
     ports:
-      - "8081:8081"  # Redis Commander UI is available at localhost:8081
+      - "8081:8081"  # Redis Commander UI will be available at localhost:8081
     depends_on:
       - redis
     networks:
       - redis-network
-
 
   # Adding Apache Kafka UI (Kafka UI)
   kafka-ui:

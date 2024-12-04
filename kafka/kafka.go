@@ -73,7 +73,7 @@ func SendMessage(producer sarama.SyncProducer, topic, message string) error {
 		return err
 	}
 
-	log.Printf("Message sent to partition %d with offset %d\n", partition, offset)
+	log.Printf("KafkaProduce : Message sent to partition %d with offset %d\n", partition, offset)
 	return nil
 }
 
@@ -174,6 +174,6 @@ func CheckKafka() bool {
 		log.Printf("Failed to describe Kafka cluster: %v", err)
 		return false
 	}
-	log.Printf("Kafka health check successful: found %d broker(s)\n", len(brokersList))
+	log.Printf("KafkaConnection : Kafka health check successful: found %d broker(s)\n", len(brokersList))
 	return true
 }

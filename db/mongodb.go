@@ -23,7 +23,7 @@ type HealthCheck struct {
 	Timestamp string `bson:"timestamp" json:"timestamp"`
 }
 
-func InitDB(MongoURI string) (*mongo.Client, error) {
+func InitDB(MongoURI string) {
 	initOnce.Do(func() {
 		cliebtOptions := options.Client().ApplyURI(MongoURI)
 		client, err := mongo.Connect(context.Background(), cliebtOptions)
@@ -37,10 +37,8 @@ func InitDB(MongoURI string) (*mongo.Client, error) {
 			return
 		}
 		sharedClient = client
-		log.Println("MongoDB connection successful.")
+		log.Println("DBConnection : MongoDB connection successful.")
 	})
-
-	return sharedClient, nil
 }
 
 func CheckDatabase() bool {

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"healthcheck/config"
-	"healthcheck/db"
 	"healthcheck/route"
 	"log"
 	"net/http"
@@ -18,13 +17,8 @@ func Init() (*mux.Router, error) {
 		return nil, err
 	}
 
-	client, err := db.InitDB(cfg.MongoURI)
-	if err != nil {
-		log.Printf("Failed to connect to MongoDB: %v", err)
-		return nil, err
-	}
 	r := mux.NewRouter()
-	route.RegisterHealthCheckRoutes(r, client, cfg)
+	route.RegisterHealthCheckRoutes(r, cfg)
 
 	return r, nil
 }
@@ -34,7 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Fatal(http.ListenAndServe(":8080", r))
-	fmt.Println("Server running on port 8080")
+	log.Fatal(http.ListenAndServe(":8020", r))
+	fmt.Println("Server running on port 8020")
 
 }

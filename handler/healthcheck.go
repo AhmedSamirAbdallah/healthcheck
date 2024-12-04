@@ -5,10 +5,9 @@ import (
 	"healthcheck/config"
 	"healthcheck/db"
 	"healthcheck/kafka"
+	"healthcheck/redis"
 	"net/http"
 	"time"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type HealthCheckResponse struct {
@@ -17,21 +16,30 @@ type HealthCheckResponse struct {
 	Dependancies map[string]interface{} `json:"dependancies"`
 }
 
-func HealthCheckHandler(client *mongo.Client, config *config.Config) http.HandlerFunc {
+func HealthCheckHandler(cfg *config.Config) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		upTime := time.Now().String()
 
+		db.InitDB(cfg.MongoURI)
 		dbStatus := map[string]interface{}{
 			"connection": db.CheckDatabase(),
-			"read":       db.CheckReadOnDB(config.DatabaseName),
-			"write":      db.CheckWriteOnDB(config.DatabaseName),
+			"read":       db.CheckReadOnDB(cfg.DatabaseName),
+			"write":      db.CheckWriteOnDB(cfg.DatabaseName),
 		}
-		kafka.InitKafka(config.KafkaBroker, config.KafkaGroupID)
+
+		kafka.InitKafka(cfg.KafkaBroker, cfg.KafkaGroupID)
 		kafkaStatus := map[string]interface{}{
 			"connection": kafka.CheckKafka(),
-			"produce":    kafka.CheckProduce(config.KafkaTopic),
+			"produce":    kafka.CheckProduce(cfg.KafkaTopic),
 			// "consume":    kafka.CheckConsume(config.KafkaTopic),
+		}
+
+		redis.InitRedis(cfg.RedisHost+":"+cfg.RedisPort, cfg.RedisPassword, cfg.RedisDB)
+		redisStatus := map[string]interface{}{
+			"connection": redis.CheckRedisConnection(),
+			"write":      redis.CheckWriteOnRedis("ahmed samir", "happy"),
+			"read":       redis.CheckReadOnRedis("ahmed samir"),
 		}
 
 		response := HealthCheckResponse{
@@ -40,6 +48,7 @@ func HealthCheckHandler(client *mongo.Client, config *config.Config) http.Handle
 			Dependancies: map[string]interface{}{
 				"database": dbStatus,
 				"kafka":    kafkaStatus,
+				"redis":    redisStatus,
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
