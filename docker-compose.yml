@@ -35,8 +35,93 @@ services:
     networks:
       - kafka-network
 
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - redis-network
+
+    # Adding Redis UI - Redis Commander
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8081:8081"  # Redis Commander UI is available at localhost:8081
+    depends_on:
+      - redis
+    networks:
+      - redis-network
+
+
+  # Adding Apache Kafka UI (Kafka UI)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"  # Kafka UI will be available at localhost:8080
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "local"  # Kafka cluster name
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"  # Point to the Kafka broker
+    depends_on:
+      - kafka
+    networks:
+      - kafka-network
+
+  # # Adding Temporal service
+  # temporal:
+  #   image: temporalio/server:1.22.1  # Using a specific version for Temporal server
+  #   container_name: temporal
+  #   environment:
+  #     - TEMPD_DB=postgresql
+  #     - POSTGRES_HOST=postgres
+  #     - POSTGRES_PORT=5432
+  #     - POSTGRES_USER=admin
+  #     - POSTGRES_PASSWORD=admin
+  #     - POSTGRES_DB=temporal
+  #   ports:
+  #     - "7233:7233"  # Temporal frontend is accessible at localhost:7233
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - temporal-network
+
+  # # Adding PostgreSQL for Temporal
+  # postgres:
+  #   image: postgres:13
+  #   container_name: postgres
+  #   environment:
+  #     - POSTGRES_USER=admin
+  #     - POSTGRES_PASSWORD=admin
+  #     - POSTGRES_DB=temporal
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - temporal-network
+
+  # # Adding Temporal Web UI (versioned)
+  # temporal-web:
+  #   image: temporalio/ui:0.15.0  # Temporal Web UI (versioned)
+  #   container_name: temporal-web
+  #   environment:
+  #     - TEMPORAL_GRPC_ENDPOINT=temporal:7233  # Connect to Temporal server
+  #   ports:
+  #     - "8088:8088"  # Web UI is available at localhost:8088
+  #   depends_on:
+  #     - temporal
+  #   networks:
+  #     - temporal-network
+
 networks:
-    kafka-network:
-      driver: bridge
-    mongo-network:
-      driver: bridge
+  kafka-network:
+    driver: bridge
+  mongo-network:
+    driver: bridge
+  redis-network:
+    driver: bridge
+  # temporal-network:
+  #   driver: bridge

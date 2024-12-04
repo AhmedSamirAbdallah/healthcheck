@@ -23,15 +23,15 @@ func HealthCheckHandler(client *mongo.Client, config *config.Config) http.Handle
 		upTime := time.Now().String()
 
 		dbStatus := map[string]interface{}{
-			"connection": db.CheckDatabase(client),
-			"read":       db.CheckReadOnDB(client, config.DatabaseName),
-			"write":      db.CheckWriteOnDB(client, config.DatabaseName),
+			"connection": db.CheckDatabase(),
+			"read":       db.CheckReadOnDB(config.DatabaseName),
+			"write":      db.CheckWriteOnDB(config.DatabaseName),
 		}
 		kafka.InitKafka(config.KafkaBroker, config.KafkaGroupID)
 		kafkaStatus := map[string]interface{}{
 			"connection": kafka.CheckKafka(),
 			"produce":    kafka.CheckProduce(config.KafkaTopic),
-			"consume":    kafka.CheckConsume(config.KafkaTopic),
+			// "consume":    kafka.CheckConsume(config.KafkaTopic),
 		}
 
 		response := HealthCheckResponse{

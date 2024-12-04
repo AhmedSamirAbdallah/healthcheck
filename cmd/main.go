@@ -1,14 +1,12 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"healthcheck/config"
 	"healthcheck/db"
 	"healthcheck/route"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -20,10 +18,7 @@ func Init() (*mux.Router, error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	client, err := db.ConnectMongo(ctx, cfg.MongoURI)
+	client, err := db.InitDB(cfg.MongoURI)
 	if err != nil {
 		log.Printf("Failed to connect to MongoDB: %v", err)
 		return nil, err
