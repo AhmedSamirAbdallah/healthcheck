@@ -46,6 +46,6 @@ func LoadConfig() (*Config, error) {
 		RedisPassword: os.Getenv("REDIS_PASSWORD"),
 		RedisDB:       redisDB,
 		TemporalUrl:   os.Getenv("TEMPORAL_URL"),
-		WithTLS:       os.Getenv("TEMPORAL_WITH_TLS"),
+		WithTLS:       os.Getenv("TEMPORAL_WITH_TLS") == "true",
 	}, nil
 }

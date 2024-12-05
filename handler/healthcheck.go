@@ -66,7 +66,7 @@ func HealthCheckHandler(cfg *config.Config) http.HandlerFunc {
 		checkTemporal := queryParam.Get("temporal") != ""
 		if checkTemporal {
 			temporalStatus := map[string]interface{}{
-				"connection": temporal.CheckTemporalConnection(cfg.TemporalUrl),
+				"connection": temporal.CheckTemporalConnection(cfg.TemporalUrl, cfg.WithTLS),
 			}
 			response.Dependancies["temporal"] = temporalStatus
 		}

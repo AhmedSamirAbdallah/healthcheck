@@ -1,6 +1,7 @@
 package temporal
 
 import (
+	"crypto/tls"
 	"log"
 	"sync"
 
@@ -12,26 +13,23 @@ var (
 	temporalClient *client.Client
 )
 
-func CheckTemporalConnection(url string) bool {
+func CheckTemporalConnection(url string, withTLS bool) bool {
 	initOnce.Do(func() {
-
-		// withTLS := os.Getenv("TEMPORAL_WITH_TLS") == "true"
-		// var tlsConfig *tls.Config
-		// if withTLS {
-		// 	tlsConfig = &tls.Config{}
-		// } else {
-		// 	tlsConfig = nil
-		// }
+		var tlsConfig *tls.Config
+		if withTLS {
+			tlsConfig = &tls.Config{}
+		} else {
+			tlsConfig = nil
+		}
 		c, err := client.Dial(client.Options{
 			HostPort: url,
-			// ConnectionOptions: client.ConnectionOptions{
-			// 	TLS: tlsConfig,
-			// },
+			ConnectionOptions: client.ConnectionOptions{
+				TLS: tlsConfig,
+			},
 		})
 		if err != nil {
 			log.Fatal(err)
 		}
-		//
 		log.Println("Temporal client initialized and connected successfully.")
 		temporalClient = &c
 
