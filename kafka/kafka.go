@@ -47,6 +47,11 @@ func InitKafka(brokers string, groupID string) error {
 }
 
 func CreateProducer(brokers string) (sarama.SyncProducer, error) {
+	if sharedProducer != nil {
+		log.Println("Reusing shared Kafka producer")
+		return sharedProducer, nil
+	}
+
 	brokerList := strings.Split(brokers, ",")
 
 	config := sarama.NewConfig()
@@ -108,7 +113,7 @@ func (c *Consumer) Cleanup(sarama.ConsumerGroupSession) error {
 
 func (c *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for message := range claim.Messages() {
-		log.Printf("Message received: topic=%s partition=%d offset=%d key=%s value=%s",
+		log.Printf("KafkaConsum : Message received: topic=%s partition=%d offset=%d key=%s value=%s",
 			message.Topic, message.Partition, message.Offset, string(message.Key), string(message.Value))
 		session.MarkMessage(message, "")
 		c.received <- true
@@ -135,12 +140,10 @@ func CheckConsume(topic string) bool {
 		log.Println("Kafka consumer is not initialized")
 		return false
 	}
-
 	consumer := &Consumer{
 		ready:    make(chan bool),
 		received: make(chan bool),
 	}
-
 	ctx, _ := context.WithCancel(context.Background())
 	// defer cancel()
 
