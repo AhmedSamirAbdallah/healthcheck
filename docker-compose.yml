@@ -75,49 +75,68 @@ services:
     networks:
       - kafka-network
 
-  # # Adding Temporal service
-  # temporal:
-  #   image: temporalio/server:1.22.1  # Using a specific version for Temporal server
-  #   container_name: temporal
-  #   environment:
-  #     - TEMPD_DB=postgresql
-  #     - POSTGRES_HOST=postgres
-  #     - POSTGRES_PORT=5432
-  #     - POSTGRES_USER=admin
-  #     - POSTGRES_PASSWORD=admin
-  #     - POSTGRES_DB=temporal
-  #   ports:
-  #     - "7233:7233"  # Temporal frontend is accessible at localhost:7233
-  #   depends_on:
-  #     - postgres
-  #   networks:
-  #     - temporal-network
+  # Adding Temporal service
+  temporal:
+    image: temporalio/server:1.22.1
+    container_name: temporal
+    environment:
+      - TEMPD_DB=postgresql
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=temporal
+      - ELASTICSEARCH_URL=http://elasticsearch:9200  # Elasticsearch URL
+      - TEMPORAL_ADDRESS=temporal:7233  # Explicitly set the Temporal address
+      - VISIBILITY_STORE=elasticsearch  # Use Elasticsearch for visibility instead of Cassandra
+      - ES_NUM_SHARDS=5  # Number of Elasticsearch shards for Temporal visibility store (adjust as needed)
+    volumes:
+      - ./docker.yaml:/etc/temporal/docker.yaml  # Mount the docker.yaml to a new path inside container
+    ports:
+      - "7233:7233"
+    depends_on:
+      - postgres
+      - elasticsearch
+    networks:
+      - temporal-network
 
-  # # Adding PostgreSQL for Temporal
-  # postgres:
-  #   image: postgres:13
-  #   container_name: postgres
-  #   environment:
-  #     - POSTGRES_USER=admin
-  #     - POSTGRES_PASSWORD=admin
-  #     - POSTGRES_DB=temporal
-  #   ports:
-  #     - "5432:5432"
-  #   networks:
-  #     - temporal-network
+  # PostgreSQL for Temporal
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=temporal
+    ports:
+      - "5432:5432"
+    networks:
+      - temporal-network
 
-  # # Adding Temporal Web UI (versioned)
-  # temporal-web:
-  #   image: temporalio/ui:0.15.0  # Temporal Web UI (versioned)
-  #   container_name: temporal-web
-  #   environment:
-  #     - TEMPORAL_GRPC_ENDPOINT=temporal:7233  # Connect to Temporal server
-  #   ports:
-  #     - "8088:8088"  # Web UI is available at localhost:8088
-  #   depends_on:
-  #     - temporal
-  #   networks:
-  #     - temporal-network
+  # Elasticsearch for Temporal
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=admin  # Set the password here
+    ports:
+      - "9200:9200"
+    networks:
+      - temporal-network
+
+  # Temporal Web UI (versioned)
+  temporal-web:
+    image: temporalio/ui:0.15.0  # Temporal Web UI (versioned)
+    container_name: temporal-web
+    environment:
+      - TEMPORAL_GRPC_ENDPOINT=temporal:7233  # Connect to Temporal server
+    ports:
+      - "8088:8088"  # Web UI is available at localhost:8088
+    depends_on:
+      - temporal
+    networks:
+      - temporal-network
 
 networks:
   kafka-network:
@@ -126,5 +145,5 @@ networks:
     driver: bridge
   redis-network:
     driver: bridge
-  # temporal-network:
-  #   driver: bridge
+  temporal-network:
+    driver: bridge

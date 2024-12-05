@@ -1,0 +1,17 @@
+persistence:
+  default:
+    sql:
+      driver: postgres
+      host: postgres
+      port: 5432
+      user: admin
+      password: admin
+      database: temporal
+      max_conns: 20
+      max_idle_conns: 10
+  visibility:
+    elasticsearch:
+      url: http://elasticsearch:9200
+      index: temporal_visibility
+      num_shards: 5
+      search_timeout: 5s
