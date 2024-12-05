@@ -2,29 +2,36 @@ package temporal
 
 import (
 	"log"
-	"net/http"
 	"sync"
+
+	"go.temporal.io/sdk/client"
 )
 
 var (
 	initOnce       sync.Once
-	temporalClient *http.Client
+	temporalClient *client.Client
 )
 
 func CheckTemporalConnection(url string) bool {
 	initOnce.Do(func() {
-		client := &http.Client{}
 
-		response, err := client.Get(url)
+		options := client.Options{
+			HostPort: url,
+		}
+		temporalClient, err := client.Dial(options)
+
 		if err != nil {
-			log.Printf("Error connecting to Temporal service: %v", err)
+			log.Printf("Error creating Temporal client: %v", err)
 			return
 		}
-		if response.StatusCode == http.StatusOK {
-			log.Println("Temporal service is healthy.")
-			temporalClient = client
-			return
-		}
+		log.Printf("temp : : %v", temporalClient)
+		// _, err := temporalClient.
+		// if err != nil {
+		// 	log.Printf("Error connecting to Temporal namespace: %v", err)
+		// 	temporalClient = nil
+		// 	return
+		// }
+		log.Println("Temporal client initialized and connected successfully.")
 
 	})
 	return temporalClient != nil
