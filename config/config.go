@@ -20,6 +20,7 @@ type Config struct {
 	RedisPassword string
 	RedisDB       int
 	TemporalUrl   string
+	WithTLS       bool
 }
 
 func LoadConfig() (*Config, error) {
@@ -45,5 +46,6 @@ func LoadConfig() (*Config, error) {
 		RedisPassword: os.Getenv("REDIS_PASSWORD"),
 		RedisDB:       redisDB,
 		TemporalUrl:   os.Getenv("TEMPORAL_URL"),
+		WithTLS:       os.Getenv("TEMPORAL_WITH_TLS"),
 	}, nil
 }

@@ -15,23 +15,25 @@ var (
 func CheckTemporalConnection(url string) bool {
 	initOnce.Do(func() {
 
-		options := client.Options{
-			HostPort: url,
-		}
-		temporalClient, err := client.Dial(options)
-
-		if err != nil {
-			log.Printf("Error creating Temporal client: %v", err)
-			return
-		}
-		log.Printf("temp : : %v", temporalClient)
-		// _, err := temporalClient.
-		// if err != nil {
-		// 	log.Printf("Error connecting to Temporal namespace: %v", err)
-		// 	temporalClient = nil
-		// 	return
+		// withTLS := os.Getenv("TEMPORAL_WITH_TLS") == "true"
+		// var tlsConfig *tls.Config
+		// if withTLS {
+		// 	tlsConfig = &tls.Config{}
+		// } else {
+		// 	tlsConfig = nil
 		// }
+		c, err := client.Dial(client.Options{
+			HostPort: url,
+			// ConnectionOptions: client.ConnectionOptions{
+			// 	TLS: tlsConfig,
+			// },
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		//
 		log.Println("Temporal client initialized and connected successfully.")
+		temporalClient = &c
 
 	})
 	return temporalClient != nil
