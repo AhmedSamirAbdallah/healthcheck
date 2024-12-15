@@ -47,7 +47,7 @@ func HealthCheckHandler(cfg *config.Config) http.HandlerFunc {
 			kafkaStatus := map[string]interface{}{
 				"connection": kafka.CheckKafka(),
 				"produce":    kafka.CheckProduce(cfg.KafkaTopic),
-				"consume":    kafka.CheckConsume(cfg.KafkaTopic),
+				"consume":    kafka.CheckConsumer(cfg.KafkaTopic),
 			}
 			response.Dependancies["kafka"] = kafkaStatus
 		}
