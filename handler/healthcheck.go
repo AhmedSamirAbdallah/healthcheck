@@ -2,11 +2,11 @@ package handler
 
 import (
 	"encoding/json"
-	"healthcheck/config"
-	"healthcheck/db"
-	"healthcheck/kafka"
-	"healthcheck/redis"
-	"healthcheck/temporal"
+	"healthcheck/internal/config"
+	"healthcheck/internal/db"
+	"healthcheck/internal/kafka"
+	"healthcheck/internal/redis"
+	"healthcheck/internal/temporal"
 	"net/http"
 	"time"
 )

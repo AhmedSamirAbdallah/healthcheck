@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"healthcheck/config"
+	"healthcheck/internal/config"
 	"healthcheck/route"
 	"log"
 	"net/http"

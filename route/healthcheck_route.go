@@ -1,8 +1,8 @@
 package route
 
 import (
-	"healthcheck/config"
 	"healthcheck/handler"
+	"healthcheck/internal/config"
 
 	"github.com/gorilla/mux"
 )
