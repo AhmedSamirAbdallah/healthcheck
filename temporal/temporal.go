@@ -32,7 +32,6 @@ func CheckTemporalConnection(url string, withTLS bool) bool {
 		}
 		log.Println("Temporal client initialized and connected successfully.")
 		temporalClient = &c
-
 	})
 	return temporalClient != nil
 }

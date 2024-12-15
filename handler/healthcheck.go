@@ -54,7 +54,7 @@ func HealthCheckHandler(cfg *config.Config) http.HandlerFunc {
 
 		checkRedis := queryParam.Get("redis") != ""
 		if checkRedis {
-			redis.InitRedis(cfg.RedisHost+":"+cfg.RedisPort, cfg.RedisPassword, cfg.RedisDB)
+			redis.InitRedis(cfg.RedisURL, cfg.RedisPassword, cfg.RedisDB)
 			redisStatus := map[string]interface{}{
 				"connection": redis.CheckRedisConnection(),
 				"write":      redis.CheckWriteOnRedis("healthcheck", "healthy"),

@@ -15,8 +15,7 @@ type Config struct {
 	KafkaBroker   string
 	KafkaTopic    string
 	KafkaGroupID  string
-	RedisHost     string
-	RedisPort     string
+	RedisURL      string
 	RedisPassword string
 	RedisDB       int
 	TemporalUrl   string
@@ -41,8 +40,7 @@ func LoadConfig() (*Config, error) {
 		KafkaBroker:   os.Getenv("KAFKA_BROKER"),
 		KafkaTopic:    os.Getenv("KAFKA_TOPIC"),
 		KafkaGroupID:  os.Getenv("KAFKA_GROUP_ID"),
-		RedisHost:     os.Getenv("REDIS_HOST"),
-		RedisPort:     os.Getenv("REDIS_PORT"),
+		RedisURL:      os.Getenv("REDIS_URL"),
 		RedisPassword: os.Getenv("REDIS_PASSWORD"),
 		RedisDB:       redisDB,
 		TemporalUrl:   os.Getenv("TEMPORAL_URL"),
